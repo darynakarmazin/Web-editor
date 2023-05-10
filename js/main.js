@@ -31,9 +31,9 @@ canvasElement.height = canvasRect.height;
 const ctx = canvasElement.getContext("2d");
 
 canvasElement.addEventListener("click", (event) => {
-  const canvasRect = canvasElement.getBoundingClientRect();
-  const x = event.clientX - canvasRect.x;
-  const y = event.clientY - canvasRect.y;
+  const rect = canvasElement.getBoundingClientRect();
+  const x = event.clientX - rect.x;
+  const y = event.clientY - rect.y;
   const halfSize = state.size / 2;
 
   if (state.shape === "square") {
