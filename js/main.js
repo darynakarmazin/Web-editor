@@ -1,50 +1,90 @@
+import { Canvas } from "./canvas.js";
+
 const state = {
-  color: "#7e22c9",
+  color: "#00ff00",
   size: 50,
-  shape: "square",
+  shape: "circle",
 };
+const shapes = [];
 
 const toolbarElement = document.querySelector("#toolbar");
+const sizeOutputElement = document.querySelector("#size-output");
+const shapeElements = document.querySelectorAll(".shape");
+const canvasElement = document.querySelector("#canvas");
 
-toolbarElement.addEventListener("input", (event) => {
+const canvas = new Canvas(canvasElement.getContext("2d"));
+
+toolbarElement.addEventListener("input", handleToolbarInput);
+canvasElement.addEventListener("click", handleCanvasClick);
+canvasElement.addEventListener("mousemove", handleCanvasMouseMove);
+window.addEventListener("resize", handlePageResize);
+
+updateToolbarUI();
+setCanvasSize();
+
+function handleToolbarInput(event) {
   const name = event.target.name;
-
-  let value;
-
-  if (event.target.type === "range") {
-    value = event.target.valueAsNumber;
-  } else {
-    value = event.target.value;
-  }
+  const value =
+    event.target.type === "range"
+      ? event.target.valueAsNumber
+      : event.target.value;
 
   state[name] = value;
 
-  console.log(state);
-});
+  updateToolbarUI();
+}
 
-const canvasElement = document.querySelector("#canvas");
-const canvasRect = canvasElement.getBoundingClientRect();
+function handleCanvasClick(event) {
+  const canvasRect = canvasElement.getBoundingClientRect();
+  const x = event.clientX - canvasRect.left;
+  const y = event.clientY - canvasRect.top;
 
-canvasElement.width = canvasRect.width;
-canvasElement.height = canvasRect.height;
+  const newShape = {
+    type: state.shape,
+    size: state.size,
+    color: state.color,
+    x,
+    y,
+  };
 
-const ctx = canvasElement.getContext("2d");
+  shapes.push(newShape);
+  canvas.render(shapes);
+}
 
-canvasElement.addEventListener("click", (event) => {
-  const rect = canvasElement.getBoundingClientRect();
-  const x = event.clientX - rect.x;
-  const y = event.clientY - rect.y;
-  const halfSize = state.size / 2;
+function handleCanvasMouseMove(event) {
+  const canvasRect = canvasElement.getBoundingClientRect();
+  const x = event.clientX - canvasRect.left;
+  const y = event.clientY - canvasRect.top;
 
-  if (state.shape === "square") {
-    ctx.fillStyle = state.color;
-    ctx.fillRect(x - halfSize, y - halfSize, state.size, state.size);
-  }
+  const tempShape = {
+    type: state.shape,
+    size: state.size,
+    color: state.color,
+    opacity: 0.5,
+    x,
+    y,
+  };
 
-  if (state.shape === "circle") {
-    ctx.beginPath();
-    ctx.arc(x, y, halfSize, 0, 2 * Math.PI);
-    ctx.fillStyle = state.color;
-    ctx.fill();
-  }
-});
+  canvas.render([...shapes, tempShape]);
+}
+
+function handlePageResize() {
+  setCanvasSize();
+}
+
+function updateToolbarUI() {
+  sizeOutputElement.textContent = state.size;
+
+  shapeElements.forEach((shapeElement) => {
+    shapeElement.style.backgroundColor = state.color;
+  });
+}
+
+function setCanvasSize() {
+  const canvasRect = canvasElement.getBoundingClientRect();
+
+  canvasElement.style.width = `${canvasRect.width}px`;
+  canvasElement.style.height = `${canvasRect.height}px`;
+  canvasElement.width = canvasRect.width;
+  canvasElement.height = canvasRect.height;
+}
